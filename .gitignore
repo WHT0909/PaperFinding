@@ -1,0 +1,32 @@
+# 虚拟环境
+venv/
+
+# 环境变量文件
+.env
+
+# Python缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 分发/打包
+dist/
+build/
+*.egg-info/
+
+# 单元测试/覆盖率报告
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+
+# IDE文件
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 操作系统文件
+.DS_Store
+Thumbs.db

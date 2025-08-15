@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PaperFinding - 文献检索系统</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- 引入Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-book-reader"></i> PaperFinding</h1>
+            <p>发现最新学术前沿，助力科研创新</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="search-section">
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="输入关键词搜索文献（如：BCI, cancer）...">
+                <div class="search-filters">
+                    <div class="filter-group">
+                        <label for="time-period">发表时间：</label>
+                        <select id="time-period">
+                            <option value="1month">近1个月</option>
+                            <option value="3months">近3个月</option>
+                            <option value="6months">近6个月</option>
+                            <option value="1year" selected>近1年</option>
+                            <option value="2years">近2年</option>
+                            <option value="5years">近5年</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="journal-rank">期刊分区：</label>
+                        <select id="journal-rank">
+                            <option value="all" selected>全部</option>
+                            <option value="cas-1">中科院1区</option>
+                            <option value="cas-2">中科院2区</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="search-button" class="btn-primary"><i class="fas fa-search"></i> 搜索</button>
+            </div>
+        </section>
+
+        <section class="results-section">
+            <div class="results-header">
+                <h2>搜索结果 <span id="result-count">(0)</span></h2>
+                <div class="sort-options">
+                    <label for="sort-by">排序方式：</label>
+                    <select id="sort-by">
+                        <option value="relevance" selected>相关性</option>
+                        <option value="date-desc">发表日期（新→旧）</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="loading" class="loading-spinner hidden">
+                <i class="fas fa-spinner fa-spin"></i> 正在加载...
+            </div>
+
+            <div id="results-container">
+                <!-- 搜索结果将在这里动态加载 -->
+                <div class="empty-state">
+                    <i class="fas fa-search fa-3x"></i>
+                    <p>输入关键词开始搜索文献</p>
+                </div>
+            </div>
+
+            <template id="article-template">
+                <article class="article-card">
+                    <h3 class="article-title"></h3>
+                    <div class="article-meta">
+                        <div class="authors"></div>
+                        <div class="journal-info">
+                            <span class="journal-name"></span>
+                            <span class="publish-date"></span>
+                        </div>
+                        <div class="metrics">
+                            <span class="jcr-quartile"></span>
+                            <span class="cas-division"></span>
+                            <span class="impact-factor"></span>
+                        </div>
+                    </div>
+                    <div class="article-abstract"></div>
+                    <div class="article-actions">
+                        <a href="#" class="btn-outline doi-link" target="_blank"><i class="fas fa-external-link-alt"></i> 查看原文</a>
+                        <a href="#" class="btn-outline pubmed-link" target="_blank"><i class="fas fa-database"></i> PubMed</a>
+                    </div>
+                </article>
+            </template>
+        </section>
+
+        <!-- 模态框已移除 -->
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 PaperFinding - 文献检索系统</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
