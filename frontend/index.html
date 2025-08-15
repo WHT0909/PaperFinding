@@ -40,6 +40,15 @@
                             <option value="cas-2">中科院2区</option>
                         </select>
                     </div>
+                    <div class="filter-group">
+                        <label for="max-results">最大篇数：</label>
+                        <select id="max-results">
+                            <option value="20">20篇</option>
+                            <option value="50" selected>50篇</option>
+                            <option value="100">100篇</option>
+                            <option value="200">200篇</option>
+                        </select>
+                    </div>
                 </div>
                 <button id="search-button" class="btn-primary"><i class="fas fa-search"></i> 搜索</button>
             </div>
@@ -69,21 +78,34 @@
                 </div>
             </div>
 
+            <!-- 分页控件  *** 新增 -->
+            <div id="pagination" class="pagination hidden">
+                <button id="btn-first"><i class="fas fa-angle-double-left"></i></button>
+                <button id="btn-prev"><i class="fas fa-angle-left"></i></button>
+                <span id="page-info"></span>
+                <button id="btn-next"><i class="fas fa-angle-right"></i></button>
+                <button id="btn-last"><i class="fas fa-angle-double-right"></i></button>
+                <input type="number" id="page-jump" min="1" placeholder="页码">
+                <button id="btn-jump">跳转</button>
+            </div>
+
             <template id="article-template">
                 <article class="article-card">
                     <h3 class="article-title"></h3>
-                    <div class="article-meta">
-                        <div class="authors"></div>
-                        <div class="journal-info">
-                            <span class="journal-name"></span>
-                            <span class="publish-date"></span>
-                        </div>
-                        <div class="metrics">
-                            <span class="jcr-quartile"></span>
-                            <span class="cas-division"></span>
-                            <span class="impact-factor"></span>
-                        </div>
+
+                    <div class="authors"></div>
+
+                    <div class="journal-info">
+                        <span class="journal-name"></span>
+                        <span class="publish-date"></span>
                     </div>
+                    
+                    <div class="metrics">
+                        <span class="jcr-quartile"></span>
+                        <span class="cas-division"></span>
+                        <span class="impact-factor"></span>
+                    </div>
+                    
                     <div class="article-abstract"></div>
                     <div class="article-actions">
                         <a href="#" class="btn-outline doi-link" target="_blank"><i class="fas fa-external-link-alt"></i> 查看原文</a>

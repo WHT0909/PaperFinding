@@ -5,17 +5,34 @@ const searchInput = document.getElementById('search-input');
 const searchButton = document.getElementById('search-button');
 const timePeriod = document.getElementById('time-period');
 const journalRank = document.getElementById('journal-rank');
+const maxResults = document.getElementById('max-results');
 const sortBy = document.getElementById('sort-by');
 const resultsContainer = document.getElementById('results-container');
 const resultCount = document.getElementById('result-count');
 const loadingSpinner = document.getElementById('loading');
 const articleTemplate = document.getElementById('article-template');
 
+// 分页相关DOM
+const paginationBox = document.getElementById('pagination');
+const btnFirst   = document.getElementById('btn-first');
+const btnPrev    = document.getElementById('btn-prev');
+const btnNext    = document.getElementById('btn-next');
+const btnLast    = document.getElementById('btn-last');
+const pageInfo   = document.getElementById('page-info');
+const pageJump   = document.getElementById('page-jump');
+const btnJump    = document.getElementById('btn-jump');
+
 // API URL
 const API_BASE_URL = '/api';
 
+// 分页全局变量
+const ITEMS_PER_PAGE = 10;
+let allArticles = [];   // 保存完整结果
+let currentPage = 1;
+
 // 初始化
 document.addEventListener('DOMContentLoaded', function() {
+    paginationBox.classList.add('hidden');
     // 绑定搜索按钮点击事件
     if (searchButton) {
         searchButton.addEventListener('click', performSearch);
@@ -38,6 +55,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // 分页按钮事件
+    btnFirst.addEventListener('click', () => goToPage(1));
+    btnPrev .addEventListener('click', () => goToPage(currentPage - 1));
+    btnNext .addEventListener('click', () => goToPage(currentPage + 1));
+    btnLast .addEventListener('click', () => goToPage(totalPages()));
+    btnJump .addEventListener('click', () => {
+        const p = parseInt(pageJump.value);
+        if (!isNaN(p)) goToPage(p);
+    });
+
 });
 
 // 执行搜索
@@ -51,38 +79,38 @@ async function performSearch() {
     
     // 显示加载动画
     showLoading(true);
-    
+    clearResults();
+    paginationBox.classList.add('hidden');   // 先隐藏分页条
+
     // 清空结果容器
     clearResults();
     
     try {
-        // 构建查询参数
         const params = new URLSearchParams({
             query: query,
             time_period: timePeriod.value,
+            max_results: maxResults.value,
             sort: sortBy.value
         });
-        
-        // 发送API请求
         const response = await fetch(`${API_BASE_URL}/articles?${params}`);
         const data = await response.json();
-        
+
         if (data.status === 'success') {
-            // 显示结果数量
-            resultCount.textContent = `(${data.data.length})`;
-            
-            // 根据期刊分区筛选
-            let filteredArticles = data.data;
+            // 先按期刊分区过滤
+            let filtered = data.data;
             if (journalRank.value !== 'all') {
-                filteredArticles = filterArticlesByRank(data.data, journalRank.value);
-                resultCount.textContent = `(${filteredArticles.length})`;
+                filtered = filterArticlesByRank(data.data, journalRank.value);
             }
-            
-            // 显示结果
-            if (filteredArticles.length > 0) {
-                displayArticles(filteredArticles);
-            } else {
+
+            allArticles = filtered;        // 保存完整结果
+            resultCount.textContent = `(${allArticles.length})`;
+            currentPage = 1;               // 重置到第一页
+            paginationBox.classList.add('hidden');
+            if (allArticles.length === 0) {
                 showEmptyState('未找到符合条件的文献');
+            } else {
+                renderPage();
+                renderPagination();   // 里面会决定是否显示
             }
         } else {
             showEmptyState('搜索出错: ' + data.message);
@@ -91,9 +119,51 @@ async function performSearch() {
         console.error('搜索出错:', error);
         showEmptyState('搜索请求失败，请稍后重试');
     } finally {
-        // 隐藏加载动画
         showLoading(false);
     }
+}
+
+// 计算总页数
+function totalPages() {
+    return Math.ceil(allArticles.length / ITEMS_PER_PAGE) || 1;
+}
+
+// 跳转到指定页
+function goToPage(page) {
+    if (page < 1 || page > totalPages()) return;
+    currentPage = page;
+    renderPage();
+    renderPagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// 渲染当前页内容
+function renderPage() {
+    clearResults();
+    if (allArticles.length === 0) {
+        showEmptyState('未找到符合条件的文献');
+        paginationBox.classList.add('hidden');
+        return;
+    }
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const pageArticles = allArticles.slice(start, start + ITEMS_PER_PAGE);
+    displayArticles(pageArticles);
+}
+
+// 渲染分页控件：只有结果条数 > ITEMS_PER_PAGE 才显示
+function renderPagination() {
+    // 结果不足一页时保持隐藏
+    if (allArticles.length <= ITEMS_PER_PAGE) {
+        paginationBox.classList.add('hidden');
+        return;
+    }
+    paginationBox.classList.remove('hidden');
+
+    pageInfo.textContent = `${currentPage} / ${totalPages()}`;
+    btnFirst.disabled = currentPage === 1;
+    btnPrev .disabled = currentPage === 1;
+    btnNext .disabled = currentPage === totalPages();
+    btnLast .disabled = currentPage === totalPages();
 }
 
 // 根据期刊分区筛选文章
@@ -168,6 +238,8 @@ function createArticleElement(article) {
     // 设置摘要
     const abstractElement = template.querySelector('.article-abstract');
     if (article.abstract) {
+       // 打印原始摘要内容到控制台，便于排查
+        // console.log('原始摘要内容:', article.abstract);
         // 限制摘要长度
         const maxLength = 250;
         if (article.abstract.length > maxLength) {
@@ -179,8 +251,14 @@ function createArticleElement(article) {
         abstractElement.textContent = '摘要不可用';
     }
     
-    // 文章卡片不再需要点击事件
-    // 移除了模态框，不再需要点击显示详情
+    // 添加文章卡片点击事件，跳转到详情页面
+    articleCard.style.cursor = 'pointer';
+    articleCard.addEventListener('click', (e) => {
+        // 确保点击的不是链接按钮
+        if (!e.target.closest('.article-actions')) {
+            window.open(`article-detail.html?pmid=${article.pmid}`, '_blank');
+        }
+    });
     
     // 设置链接
     const doiLink = template.querySelector('.doi-link');

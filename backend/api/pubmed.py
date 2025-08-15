@@ -53,9 +53,9 @@ def get_pubmed_articles(query, time_period='1year', max_results=100):
         
         # 使用Entrez API搜索PubMed
         if API_KEY:
-            handle = Entrez.esearch(db="pubmed", term=search_query, retmax=max_results, sort="relevance", api_key=API_KEY)
+            handle = Entrez.esearch(db="pubmed", term=search_query, retmax=max_results, sort="pub_date", api_key=API_KEY)
         else:
-            handle = Entrez.esearch(db="pubmed", term=search_query, retmax=max_results, sort="relevance")
+            handle = Entrez.esearch(db="pubmed", term=search_query, retmax=max_results, sort="pub_date")
             
         record = Entrez.read(handle)
         handle.close()
@@ -135,7 +135,34 @@ def get_pubmed_articles(query, time_period='1year', max_results=100):
             # PubMed ID
             article_data["pmid"] = record["MedlineCitation"]["PMID"]
             
+            # 添加发表日期用于排序（从PubDate中提取）
+            if "journal" in article_data and "pub_date" in article_data["journal"]:
+                article_data["sort_date"] = article_data["journal"]["pub_date"]
+            else:
+                article_data["sort_date"] = "1900-01-01"  # 默认日期
+            
             articles.append(article_data)
+        
+        # 按发表日期从新到旧排序
+        def parse_date(date_str):
+            """解析日期字符串，返回可比较的日期对象"""
+            try:
+                # 处理不同的日期格式
+                if '-' in date_str:
+                    parts = date_str.split('-')
+                    if len(parts) >= 1:
+                        year = int(parts[0])
+                        month = int(parts[1]) if len(parts) > 1 else 1
+                        day = int(parts[2]) if len(parts) > 2 else 1
+                        return datetime(year, month, day)
+                else:
+                    # 只有年份的情况
+                    return datetime(int(date_str), 1, 1)
+            except:
+                return datetime(1900, 1, 1)
+        
+        # 按日期排序（从新到旧）
+        articles.sort(key=lambda x: parse_date(x.get('sort_date', '1900-01-01')), reverse=True)
         
         return articles
     

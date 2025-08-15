@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章详情 - PaperFinding</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部导航 -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-microscope"></i> PaperFinding</h1>
+                <nav>
+                    <a href="index.html" class="nav-link">
+                        <i class="fas fa-arrow-left"></i> 返回搜索
+                    </a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- 加载动画 -->
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>正在加载文章详情...</p>
+        </div>
+
+        <!-- 错误信息 -->
+        <div id="error-message" class="error-message hidden">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p id="error-text">加载失败，请稍后重试</p>
+        </div>
+
+        <!-- 文章详情内容 -->
+        <main id="article-detail" class="article-detail hidden">
+            <!-- 文章标题 -->
+            <section class="article-header">
+                <h1 id="article-title" class="detail-title"></h1>
+                
+                <!-- 作者信息 -->
+                <div class="authors-section">
+                    <h3><i class="fas fa-users"></i> 作者</h3>
+                    <p id="article-authors" class="authors-list"></p>
+                </div>
+                
+                <!-- 期刊信息 -->
+                <div class="journal-section">
+                    <h3><i class="fas fa-book"></i> 期刊信息</h3>
+                    <div class="journal-info">
+                        <p id="journal-name" class="journal-name"></p>
+                        <p id="publish-date" class="publish-date"></p>
+                        <div id="journal-metrics" class="journal-metrics">
+                            <span id="cas-division" class="metric-badge cas-badge hidden"></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 摘要部分 -->
+            <section class="abstract-section">
+                <h3><i class="fas fa-file-text"></i> 摘要</h3>
+                <div id="article-abstract" class="abstract-content"></div>
+            </section>
+
+            <!-- 链接部分 -->
+            <section class="links-section">
+                <h3><i class="fas fa-external-link-alt"></i> 相关链接</h3>
+                <div class="article-links">
+                    <a id="doi-link" href="#" target="_blank" class="link-button doi-link hidden">
+                        <i class="fas fa-link"></i> DOI链接
+                    </a>
+                    <a id="pubmed-link" href="#" target="_blank" class="link-button pubmed-link">
+                        <i class="fas fa-external-link-alt"></i> PubMed
+                    </a>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/article-detail.js"></script>
+</body>
+</html>

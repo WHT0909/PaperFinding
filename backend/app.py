@@ -25,10 +25,11 @@ def get_articles():
     # 获取查询参数
     query = request.args.get('query', '')
     time_period = request.args.get('time_period', '1year')  # 默认为1年内
+    max_results = request.args.get('max_results', 50)  # 默认最大50篇
     
     try:
         # 从PubMed获取文章
-        articles = get_pubmed_articles(query, time_period)
+        articles = get_pubmed_articles(query, time_period, int(max_results))
         
         # 获取期刊指标信息
         for article in articles:
@@ -40,6 +41,97 @@ def get_articles():
             'status': 'success',
             'data': articles
         })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+# API路由 - 获取单篇文章详情
+@app.route('/api/article/<pmid>', methods=['GET'])
+def get_article_detail(pmid):
+    try:
+        from Bio import Entrez
+        import os
+        
+        API_KEY = os.getenv("PUBMED_API_KEY", "")
+        
+        # 获取文章详情
+        if API_KEY:
+            handle = Entrez.efetch(db="pubmed", id=pmid, retmode="xml", api_key=API_KEY)
+        else:
+            handle = Entrez.efetch(db="pubmed", id=pmid, retmode="xml")
+            
+        records = Entrez.read(handle)
+        handle.close()
+        
+        if not records["PubmedArticle"]:
+            return jsonify({
+                'status': 'error',
+                'message': '文章未找到'
+            }), 404
+        
+        record = records["PubmedArticle"][0]
+        article = record["MedlineCitation"]["Article"]
+        
+        # 解析详细信息
+        article_detail = {
+            'pmid': pmid,
+            'title': article["ArticleTitle"],
+            'authors': [],
+            'journal': {},
+            'abstract': '',
+            'doi': ''
+        }
+        
+        # 作者信息
+        if "AuthorList" in article:
+            for author in article["AuthorList"]:
+                if "LastName" in author and "ForeName" in author:
+                    article_detail["authors"].append(f"{author['LastName']} {author['ForeName']}")
+                elif "CollectiveName" in author:
+                    article_detail["authors"].append(author["CollectiveName"])
+        
+        # 期刊信息
+        if "Journal" in article:
+            journal = article["Journal"]
+            if "Title" in journal:
+                article_detail["journal"]["title"] = journal["Title"]
+            if "JournalIssue" in journal:
+                issue = journal["JournalIssue"]
+                if "PubDate" in issue:
+                    pub_date = issue["PubDate"]
+                    date_parts = []
+                    for key in ["Year", "Month", "Day"]:
+                        if key in pub_date:
+                            date_parts.append(pub_date[key])
+                    article_detail["journal"]["pub_date"] = "-".join(date_parts)
+        
+        # 完整摘要
+        if "Abstract" in article and "AbstractText" in article["Abstract"]:
+            abstract_parts = article["Abstract"]["AbstractText"]
+            if isinstance(abstract_parts, list):
+                abstract = " ".join([str(part) for part in abstract_parts])
+            else:
+                abstract = str(abstract_parts)
+            article_detail["abstract"] = abstract
+        
+        # DOI
+        if "ELocationID" in article:
+            for location in article["ELocationID"]:
+                if location.attributes["EIdType"] == "doi":
+                    article_detail["doi"] = str(location)
+        
+        # 获取期刊指标信息
+        if article_detail['journal']:
+            metrics = get_journal_metrics(article_detail['journal'])
+            article_detail['journal_metrics'] = metrics
+        
+        return jsonify({
+            'status': 'success',
+            'data': article_detail
+        })
+        
     except Exception as e:
         return jsonify({
             'status': 'error',
