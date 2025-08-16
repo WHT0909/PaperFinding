@@ -624,4 +624,9 @@ footer {
 /* 让期刊信息独占一行 */
 .article-card .journal-info {
     width: 100%;
+    margin-bottom: 0.3rem;
+}
+
+.article-card .metrics .cas-division {
+    display: none;
 }
