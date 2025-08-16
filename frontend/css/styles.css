@@ -201,19 +201,32 @@ select {
 .journal-info {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;               /* 三项之间的紧凑间距 */
-    margin-bottom: 0.6rem;
+    gap: 4px;
+    margin: 0.5rem 0;
+}
+
+.journal-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .journal-name {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--dark-color);
+    font-weight: 500;
+    color: #2c5282;
+}
+
+.cas-division {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    background-color: #E6F6FE;
+    color: #2B6CB0;
 }
 
 .publish-date {
+    color: #666;
     font-size: 0.9rem;
-    color: var(--secondary-color);
 }
 
 .metrics {

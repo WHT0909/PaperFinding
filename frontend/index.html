@@ -90,13 +90,18 @@
             </div>
 
             <template id="article-template">
-                <article class="article-card">
+                <div class="article-card">
                     <h3 class="article-title"></h3>
 
-                    <div class="authors"></div>
+                    <p class="authors"></p>
 
                     <div class="journal-info">
-                        <span class="journal-name"></span>
+                        <!-- 第一行：期刊名称和分区 -->
+                        <div class="journal-line">
+                            <span class="journal-name"></span>
+                            <span class="cas-division"></span>
+                        </div>
+                        <!-- 第二行：发表日期 -->
                         <span class="publish-date"></span>
                     </div>
                     
@@ -111,7 +116,7 @@
                         <a href="#" class="btn-outline doi-link" target="_blank"><i class="fas fa-external-link-alt"></i> 查看原文</a>
                         <a href="#" class="btn-outline pubmed-link" target="_blank"><i class="fas fa-database"></i> PubMed</a>
                     </div>
-                </article>
+                </div>
             </template>
         </section>
 

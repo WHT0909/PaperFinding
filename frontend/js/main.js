@@ -209,11 +209,34 @@ function createArticleElement(article) {
     
     // 设置期刊信息
     if (article.journal) {
-        const journalName = template.querySelector('.journal-name');
-        const publishDate = template.querySelector('.publish-date');
+        const journalInfo = template.querySelector('.journal-info');
         
+        // 创建第一行：期刊名称和分区
+        const journalLine = document.createElement('div');
+        journalLine.className = 'journal-line';
+        
+        const journalName = document.createElement('span');
+        journalName.className = 'journal-name';
         journalName.textContent = article.journal.title || '期刊未知';
-        publishDate.textContent = article.journal.pub_date ? `(${article.journal.pub_date})` : '';
+        journalLine.appendChild(journalName);
+        
+        // 添加分区信息（如果有）
+        if (article.journal_metrics && article.journal_metrics.cas_division) {
+            const casElement = document.createElement('span');
+            casElement.className = 'cas-division';
+            casElement.textContent = `中科院: ${article.journal_metrics.cas_division}`;
+            journalLine.appendChild(casElement);
+        }
+        
+        // 创建第二行：发表日期
+        const publishDate = document.createElement('div');
+        publishDate.className = 'publish-date';
+        publishDate.textContent = article.journal.pub_date || '';
+        
+        // 清空原有内容并添加新的布局
+        journalInfo.innerHTML = '';
+        journalInfo.appendChild(journalLine);
+        journalInfo.appendChild(publishDate);
     }
     
     // 设置期刊指标
