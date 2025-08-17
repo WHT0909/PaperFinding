@@ -727,3 +727,34 @@ footer {
     28% { transform: translateY(-5px); }
     44% { transform: translateY(0px); }
 }
+
+/* 思考过程样式 */
+.message.thinking {
+    margin-right: auto;
+}
+
+.message.thinking .message-content {
+    background-color: #f0f4f8;
+    border: 1px solid #d9e2ec;
+    color: #4a5568;
+    font-style: italic;
+}
+
+/* 打字机效果动画 */
+@keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+}
+
+.typewriter-text {
+    overflow: hidden;
+    border-right: .15em solid #666;
+    white-space: nowrap;
+    margin: 0 auto;
+    animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+}
+
+@keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: #666 }
+}

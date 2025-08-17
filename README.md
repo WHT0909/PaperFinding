@@ -47,12 +47,18 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. 运行应用
+4. 启动 ollama
+
+我的本地 deepseek 模型文件在路径 "F:\Ollama\models" 下。以管理员方式打开终端，使用`ollama server`指令启动 ollama；打开浏览器访问 http://localhost:11434，确认能看到 "Ollama is running" 后，进入下一步骤
+
+注：如果有报错提示端口冲突 / 被占用，请先手动退出 ollama 应用程序
+
+5. 运行应用
 ```
 python backend/app.py
 ```
 
-5. 在浏览器中访问
+6. 在浏览器中访问
 ```
 http://localhost:5000
 ```

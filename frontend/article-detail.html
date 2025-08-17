@@ -4,94 +4,456 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>文章详情 - PaperFinding</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            padding-bottom: 60px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+        
+        main {
+            padding: 30px 0;
+        }
+        
+        /* 加载和错误样式 */
+        .loading, .error-message {
+            text-align: center;
+            padding: 50px 0;
+        }
+        
+        .loading i {
+            font-size: 48px;
+            color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            color: #721c24;
+            margin-bottom: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* 文章详情样式 */
+        .article-detail {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .article-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #2c3e50;
+        }
+        
+        .article-meta {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .article-meta div {
+            margin-bottom: 6px;
+        }
+        
+        .article-meta strong {
+            color: #34495e;
+        }
+        
+        .article-abstract {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .no-abstract {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .links {
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .link-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .link-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .link-button i {
+            margin-right: 8px;
+        }
+        
+        /* 对话样式 */
+        .chat-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background-color: #3498db;
+            color: white;
+            padding: 16px 20px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .messages-container {
+            height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .message.user {
+            align-self: flex-end;
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .message.bot {
+            align-self: flex-start;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        /* 思考过程样式 */
+        .message.thinking {
+            align-self: flex-start;
+            background-color: #f0f4f8;
+            border: 1px solid #d9e2ec;
+            color: #4a5568;
+            font-style: italic;
+        }
+        
+        .message-content {
+            word-wrap: break-word;
+        }
+        
+        .input-area {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #eee;
+        }
+        
+        #user-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        #user-input:focus {
+            border-color: #3498db;
+        }
+        
+        #send-button {
+            margin-left: 10px;
+            padding: 10px 18px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        #send-button:hover {
+            background-color: #2980b9;
+        }
+        
+        /* 打字机效果动画 */
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        .typewriter-text {
+            overflow: hidden;
+            border-right: .15em solid #666;
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #666 }
+        }
+        
+        /* 正在输入指示器 */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+        }
+        
+        .typing-indicator span {
+            height: 10px;
+            width: 10px;
+            background-color: #666;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .typing-indicator span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        
+        /* Markdown 样式 */
+        .markdown-content h1, 
+        .markdown-content h2, 
+        .markdown-content h3, 
+        .markdown-content h4, 
+        .markdown-content h5, 
+        .markdown-content h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .markdown-content h1 {
+            font-size: 1.8em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.3em;
+        }
+        
+        .markdown-content h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.3em;
+        }
+        
+        .markdown-content h3 {
+            font-size: 1.2em;
+        }
+        
+        .markdown-content p {
+            margin-bottom: 1em;
+        }
+        
+        .markdown-content ul, 
+        .markdown-content ol {
+            margin-bottom: 1em;
+            padding-left: 2em;
+        }
+        
+        .markdown-content li {
+            margin-bottom: 0.5em;
+        }
+        
+        .markdown-content strong {
+            font-weight: 600;
+        }
+        
+        .markdown-content em {
+            font-style: italic;
+        }
+        
+        .markdown-content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        .markdown-content a:hover {
+            text-decoration: underline;
+        }
+        
+        .markdown-content blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 1em;
+            margin-left: 0;
+            margin-bottom: 1em;
+            color: #666;
+        }
+        
+        .markdown-content code {
+            background-color: #f8f8f8;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        .markdown-content pre {
+            background-color: #f8f8f8;
+            padding: 1em;
+            border-radius: 3px;
+            overflow-x: auto;
+            margin-bottom: 1em;
+        }
+        
+        .markdown-content pre code {
+            padding: 0;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 头部导航 -->
-        <header class="header">
-            <div class="header-content">
-                <h1><i class="fas fa-microscope"></i> PaperFinding</h1>
-                <nav>
-                    <a href="index.html" class="nav-link">
-                        <i class="fas fa-arrow-left"></i> 返回搜索
-                    </a>
-                </nav>
-            </div>
-        </header>
-
-        <!-- 加载动画 -->
-        <div id="loading" class="loading hidden">
-            <div class="spinner"></div>
-            <p>正在加载文章详情...</p>
+    <header>
+        <div class="container header-content">
+            <a href="/" class="logo">
+                <i class="fas fa-search"></i>
+                <span>PaperFinding</span>
+            </a>
         </div>
-
+    </header>
+    
+    <main class="container">
+        <!-- 加载指示器 -->
+        <div id="loading" class="loading hidden">
+            <i class="fas fa-circle-notch"></i>
+            <p>加载中...</p>
+        </div>
+        
         <!-- 错误信息 -->
         <div id="error-message" class="error-message hidden">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p id="error-text">加载失败，请稍后重试</p>
+            <p id="error-text">发生错误</p>
         </div>
+        
+        <!-- 文章详情 -->
+        <div id="article-detail" class="article-detail hidden">
+            <h1 id="article-title"></h1>
+            
+            <div class="article-meta">
+                <div id="article-authors"></div>
+                <div id="journal-name"></div>
+                <div id="publish-date"></div>
+                <div id="cas-division" class="hidden"></div>
+            </div>
+            
+            <div id="article-abstract" class="article-abstract markdown-content"></div>
+            
+            <div class="links">
+                <a id="doi-link" href="#" target="_blank" class="link-button hidden">
+                    <i class="fas fa-link"></i>
+                    <span>DOI链接</span>
+                </a>
+                <a id="pubmed-link" href="#" target="_blank" class="link-button">
+                    <i class="fas fa-external-link-alt"></i>
+                    <span>PubMed链接</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- 对话区域 -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <i class="fas fa-robot"></i>
+                <span> 学术助手</span>
+            </div>
+            <div id="messages-container" class="messages-container"></div>
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="请输入您的问题...">
+                <button id="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </main>
 
-        <!-- 文章详情内容 -->
-        <main id="article-detail" class="article-detail hidden">
-            <!-- 文章标题 -->
-            <section class="article-header">
-                <h1 id="article-title" class="detail-title"></h1>
-                
-                <!-- 作者信息 -->
-                <div class="authors-section">
-                    <h3><i class="fas fa-users"></i> 作者</h3>
-                    <p id="article-authors" class="authors-list"></p>
-                </div>
-                
-                <!-- 期刊信息 -->
-                <div class="journal-section">
-                    <h3><i class="fas fa-book"></i> 期刊信息</h3>
-                    <div class="journal-info">
-                        <p id="journal-name" class="journal-name"></p>
-                        <p id="publish-date" class="publish-date"></p>
-                        <div id="journal-metrics" class="journal-metrics">
-                            <span id="cas-division" class="metric-badge cas-badge hidden"></span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 摘要部分 -->
-            <section class="abstract-section">
-                <h3><i class="fas fa-file-text"></i> 摘要</h3>
-                <div id="article-abstract" class="abstract-content"></div>
-            </section>
-
-            <!-- 链接部分 -->
-            <section class="links-section">
-                <h3><i class="fas fa-external-link-alt"></i> 相关链接</h3>
-                <div class="article-links">
-                    <a id="doi-link" href="#" target="_blank" class="link-button doi-link hidden">
-                        <i class="fas fa-link"></i> DOI链接
-                    </a>
-                    <a id="pubmed-link" href="#" target="_blank" class="link-button pubmed-link">
-                        <i class="fas fa-external-link-alt"></i> PubMed
-                    </a>
-                </div>
-            </section>
-            <!-- 对话部分 -->
-            <section class="chat-section">
-                <h3><i class="fas fa-comments"></i> 文章分析与对话</h3>
-                <div id="chat-container">
-                    <div id="messages-container"></div>
-                    <div class="chat-input-area">
-                        <textarea id="user-input" placeholder="请输入您的问题或请求，例如：总结这篇文章的主要发现..."></textarea>
-                        <button id="send-button" class="btn-primary">
-                            <i class="fas fa-paper-plane"></i> 发送
-                        </button>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
-
+    <!-- 引入Marked.js库用于Markdown渲染 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="js/article-detail.js"></script>
 </body>
 </html>

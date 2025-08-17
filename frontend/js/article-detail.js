@@ -92,9 +92,9 @@ function displayArticleDetail(article) {
         casDivision.classList.add('hidden');
     }
     
-    // 设置摘要
+    // 设置摘要（支持Markdown）
     if (article.abstract) {
-        articleAbstract.innerHTML = formatAbstract(article.abstract);
+        articleAbstract.innerHTML = marked.parse(article.abstract);
     } else {
         articleAbstract.innerHTML = '<p class="no-abstract">摘要不可用</p>';
     }
@@ -117,16 +117,6 @@ function displayArticleDetail(article) {
     // 初始化对话功能
     initChat(article);
 }
-
-// 格式化摘要文本
-function formatAbstract(abstract) {
-    if (!abstract || abstract.trim() === '') {
-        return '<p class="no-abstract">摘要不可用</p>';
-    }
-    // 直接放进一个 <p> 标签，保持 PubMed 返回的原始文本
-    return `<p>${abstract.trim()}</p>`;
-}
-
 
 // 显示加载动画
 function showLoading(show) {
@@ -220,7 +210,16 @@ async function sendMessage() {
         removeTypingIndicator(typingIndicator);
         
         if (data.status === 'success') {
-            addMessage('bot', data.response);
+            // 假设后端返回思考过程和最终结果
+            if (data.thought_process && data.thought_process.length > 0) {
+                // 逐步显示思考过程
+                for (const thought of data.thought_process) {
+                    await typeMessage('thinking', thought, 50); // 50ms延迟，模拟实时思考
+                    await new Promise(resolve => setTimeout(resolve, 300)); // 思考间隔
+                }
+            }
+            // 显示最终回复（支持Markdown）
+            addMarkdownMessage('bot', data.response);
         } else {
             addMessage('bot', `抱歉，处理请求时出错: ${data.message}`);
         }
@@ -257,7 +256,16 @@ async function sendAnalysisRequest() {
         messagesContainer.lastChild.remove();
         
         if (data.status === 'success') {
-            addMessage('bot', data.analysis);
+            // 假设后端返回思考过程和最终结果
+            if (data.thought_process && data.thought_process.length > 0) {
+                // 逐步显示思考过程
+                for (const thought of data.thought_process) {
+                    await typeMessage('thinking', thought, 50); // 50ms延迟，模拟实时思考
+                    await new Promise(resolve => setTimeout(resolve, 300)); // 思考间隔
+                }
+            }
+            // 显示最终分析结果（支持Markdown）
+            addMarkdownMessage('bot', data.analysis);
             addMessage('bot', '我已分析这篇文章，您有什么问题想问我吗？');
         } else {
             addMessage('bot', `分析文章时出错: ${data.message}`);
@@ -270,7 +278,7 @@ async function sendAnalysisRequest() {
     }
 }
 
-// 添加消息到对话容器
+// 添加普通文本消息到对话容器
 function addMessage(sender, text) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
@@ -283,7 +291,48 @@ function addMessage(sender, text) {
     messagesContainer.appendChild(messageDiv);
     
     // 滚动到底部
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    scrollToBottom();
+}
+
+// 添加Markdown格式消息到对话容器
+function addMarkdownMessage(sender, markdownText) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content markdown-content';
+    contentDiv.innerHTML = marked.parse(markdownText); // 使用marked.js解析Markdown
+    
+    messageDiv.appendChild(contentDiv);
+    messagesContainer.appendChild(messageDiv);
+    
+    // 滚动到底部
+    scrollToBottom();
+}
+
+// 打字机效果显示消息（思考过程）
+async function typeMessage(sender, text, delay = 50) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content typewriter-text';
+    contentDiv.textContent = '';
+    
+    messageDiv.appendChild(contentDiv);
+    messagesContainer.appendChild(messageDiv);
+    scrollToBottom();
+    
+    // 逐字显示文本
+    for (let i = 0; i < text.length; i++) {
+        contentDiv.textContent += text.charAt(i);
+        scrollToBottom();
+        await new Promise(resolve => setTimeout(resolve, delay));
+    }
+    
+    // 移除打字机效果的光标
+    contentDiv.classList.remove('typewriter-text');
+    return messageDiv;
 }
 
 // 添加正在输入指示器
@@ -293,7 +342,7 @@ function addTypingIndicator() {
     indicatorDiv.innerHTML = '<span></span><span></span><span></span>';
     
     messagesContainer.appendChild(indicatorDiv);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    scrollToBottom();
     
     return indicatorDiv;
 }
@@ -303,4 +352,9 @@ function removeTypingIndicator(indicator) {
     if (indicator && indicator.parentNode === messagesContainer) {
         messagesContainer.removeChild(indicator);
     }
+}
+
+// 滚动到消息容器底部
+function scrollToBottom() {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
