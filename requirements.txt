@@ -14,3 +14,5 @@ lxml==4.6.3
 # LangChain for PubMed integration
 langchain>=0.0.267
 langchain-community>=0.0.10
+# XunFeiIXngHuo
+requests_toolbelt==1.0.0

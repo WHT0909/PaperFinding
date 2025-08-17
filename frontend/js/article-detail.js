@@ -14,6 +14,12 @@ const casDivision = document.getElementById('cas-division');
 const articleAbstract = document.getElementById('article-abstract');
 const doiLink = document.getElementById('doi-link');
 const pubmedLink = document.getElementById('pubmed-link');
+// 添加对话相关DOM元素
+const chatContainer = document.getElementById('chat-container');
+const messagesContainer = document.getElementById('messages-container');
+const userInput = document.getElementById('user-input');
+const sendButton = document.getElementById('send-button');
+let currentArticle = null;
 
 // API URL
 const API_BASE_URL = '/api';
@@ -107,6 +113,9 @@ function displayArticleDetail(article) {
     
     // 显示文章详情
     showArticleDetail();
+
+    // 初始化对话功能
+    initChat(article);
 }
 
 // 格式化摘要文本
@@ -147,4 +156,151 @@ function showArticleDetail() {
 // 隐藏文章详情
 function hideArticleDetail() {
     articleDetail.classList.add('hidden');
+}
+
+// 初始化对话功能
+function initChat(article) {
+    currentArticle = article;
+    bindChatEvents();
+    
+    // 发送初始请求，让AI分析文章
+    setTimeout(() => {
+        addMessage('bot', '正在分析文章内容，请稍候...');
+        sendAnalysisRequest();
+    }, 1000);
+}
+
+// 绑定对话事件
+function bindChatEvents() {
+    // 发送按钮点击事件
+    sendButton.addEventListener('click', sendMessage);
+    
+    // 回车键发送消息
+    userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+}
+
+// 发送消息
+async function sendMessage() {
+    const message = userInput.value.trim();
+    if (!message || !currentArticle) return;
+    
+    // 添加用户消息
+    addMessage('user', message);
+    userInput.value = '';
+    
+    // 显示正在输入状态
+    const typingIndicator = addTypingIndicator();
+    
+    try {
+        // 发送请求到后端
+        const response = await fetch(`${API_BASE_URL}/article/${currentArticle.pmid}/chat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                article: {
+                    title: currentArticle.title,
+                    abstract: currentArticle.abstract,
+                    authors: currentArticle.authors,
+                    journal: currentArticle.journal
+                }
+            })
+        });
+        
+        const data = await response.json();
+        
+        // 移除正在输入状态
+        removeTypingIndicator(typingIndicator);
+        
+        if (data.status === 'success') {
+            addMessage('bot', data.response);
+        } else {
+            addMessage('bot', `抱歉，处理请求时出错: ${data.message}`);
+        }
+    } catch (error) {
+        console.error('对话请求失败:', error);
+        removeTypingIndicator(typingIndicator);
+        addMessage('bot', '抱歉，无法连接到服务，请稍后重试');
+    }
+}
+
+// 发送文章分析请求
+async function sendAnalysisRequest() {
+    if (!currentArticle) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/article/${currentArticle.pmid}/analyze`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                article: {
+                    title: currentArticle.title,
+                    abstract: currentArticle.abstract,
+                    authors: currentArticle.authors,
+                    journal: currentArticle.journal
+                }
+            })
+        });
+        
+        const data = await response.json();
+        
+        // 清除"正在分析"消息
+        messagesContainer.lastChild.remove();
+        
+        if (data.status === 'success') {
+            addMessage('bot', data.analysis);
+            addMessage('bot', '我已分析这篇文章，您有什么问题想问我吗？');
+        } else {
+            addMessage('bot', `分析文章时出错: ${data.message}`);
+        }
+    } catch (error) {
+        console.error('分析请求失败:', error);
+        // 清除"正在分析"消息
+        messagesContainer.lastChild.remove();
+        addMessage('bot', '抱歉，分析文章时出现错误，请稍后重试');
+    }
+}
+
+// 添加消息到对话容器
+function addMessage(sender, text) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    contentDiv.textContent = text;
+    
+    messageDiv.appendChild(contentDiv);
+    messagesContainer.appendChild(messageDiv);
+    
+    // 滚动到底部
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// 添加正在输入指示器
+function addTypingIndicator() {
+    const indicatorDiv = document.createElement('div');
+    indicatorDiv.className = 'message bot typing-indicator';
+    indicatorDiv.innerHTML = '<span></span><span></span><span></span>';
+    
+    messagesContainer.appendChild(indicatorDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    return indicatorDiv;
+}
+
+// 移除正在输入指示器
+function removeTypingIndicator(indicator) {
+    if (indicator && indicator.parentNode === messagesContainer) {
+        messagesContainer.removeChild(indicator);
+    }
 }
