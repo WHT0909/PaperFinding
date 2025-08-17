@@ -13,11 +13,10 @@ CORS(app)  # 启用CORS以允许前端访问API
 # 导入API模块
 from api.pubmed import get_pubmed_articles
 from api.journal_info import get_journal_metrics
-# 导入Spark4.0 Ultra API工具类
-from utils.spark_api import Spark4UltraAPI  # 修改导入的类名
+from utils.ollama_api import OllamaAPI
 
-# 初始化星火API客户端 - 使用Spark4.0 Ultra
-spark_api = Spark4UltraAPI()  # 修改类名
+# 初始化Ollama客户端
+ollama_api = OllamaAPI()
 
 # 主页路由 - 提供前端页面
 @app.route('/')
@@ -143,7 +142,7 @@ def get_article_detail(pmid):
             'message': str(e)
         }), 500
 
-# API路由 - 分析文章（使用Spark4.0 Ultra的增强能力）
+# API路由 - 分析文章
 @app.route('/api/article/<pmid>/analyze', methods=['POST'])
 def analyze_article(pmid):
     try:
@@ -156,7 +155,7 @@ def analyze_article(pmid):
                 'message': '缺少文章信息'
             }), 400
         
-        # 构建分析提示 - 利用Spark4.0 Ultra的增强分析能力
+        # 构建分析提示
         prompt = f"""请深入分析以下学术文章并提供全面总结:
         
         标题: {article.get('title', '无标题')}
@@ -176,13 +175,14 @@ def analyze_article(pmid):
         请用专业、简洁的中文回答，总字数控制在500字左右。
         """
         
-        # 调用Spark4.0 Ultra API，使用较低的temperature获得更稳定的分析结果
+        # 调用Ollama API
         messages = [
             {"role": "system", "content": "你是一位专业的学术文献分析专家，擅长深入解析各类学术论文并提取关键信息。"},
             {"role": "user", "content": prompt}
         ]
         
-        analysis = spark_api.chat(messages, temperature=0.2, max_tokens=2048)
+        # 调整参数适应本地模型
+        analysis = ollama_api.chat(messages, temperature=0.2, max_tokens=1024)  # 修改这里
         
         return jsonify({
             'status': 'success',
@@ -195,7 +195,7 @@ def analyze_article(pmid):
             'message': str(e)
         }), 500
 
-# API路由 - 文章对话（保持不变，受益于Spark4.0 Ultra的增强能力）
+# API路由 - 文章对话
 @app.route('/api/article/<pmid>/chat', methods=['POST'])
 def chat_about_article(pmid):
     try:
@@ -221,13 +221,13 @@ def chat_about_article(pmid):
         用户问题: {message}
         """
         
-        # 调用Spark4.0 Ultra API
+        # 调用Ollama API
         messages = [
             {"role": "system", "content": "你是一位专业的学术文献分析助手，根据提供的文章信息详细回答用户问题，用中文回答。"},
             {"role": "user", "content": prompt}
         ]
         
-        answer = spark_api.chat(messages, temperature=0.5, max_tokens=4096)
+        answer = ollama_api.chat(messages, temperature=0.5, max_tokens=2048)  # 修改这里
         
         return jsonify({
             'status': 'success',
